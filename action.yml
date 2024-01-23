@@ -1,0 +1,40 @@
+name: "mitigate github action"
+inputs:
+  assetid:
+    description: 'The id of the asset that it will get synced'
+    required: true
+    default: ''
+  type:
+    description: 'From where the sbom will be generated (image, repo)'
+    required: false
+    default: ''
+  registry:
+    description: 'Docker registry of the images'
+    required: false
+    default: ''
+  imagename:
+    description: 'Name of docker image of the sbom'
+    required: false
+    default: ''
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Install Dependencies
+      run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+      shell: bash
+
+    - name: Generate sbom
+      run: |
+        if [ "${{ inputs.type }}" = "image" ]
+        then
+          syft registry:${{ inputs.imagename }} -o cyclonedx-json=mitigate_dev_core_sbom.json
+          ls
+        fi
+      shell: bash
+    
+    - name: Asset sync
+      run: |
+        curl -X 'POST' "https://dev.mitigate.maggioli-research.gr/mitigate-service/api/asset/sync/${{ inputs.assetid }}" -H 'accept: */*' -H 'Content-Type: multipart/form-data' -F 'file=@mitigate_dev_core_sbom.json;type=application/json'
+      shell: bash
