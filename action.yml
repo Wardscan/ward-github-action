@@ -29,12 +29,15 @@ runs:
       run: |
         if [ "${{ inputs.type }}" = "image" ]
         then
-          syft registry:${{ inputs.imagename }} -o cyclonedx-json=mitigate_dev_core_sbom.json
+          syft registry:${{ inputs.imagename }} -o cyclonedx-json=my_sbom.json
           ls
-        fi
+        elif [ "${{ inputs.type }}" = "repo" ]
+        then
+          syft "." -o cyclonedx-json=my_sbom.json
+        fi 
       shell: bash
     
     - name: Asset sync
       run: |
-        curl -X 'POST' "https://dev.mitigate.maggioli-research.gr/mitigate-service/api/asset/sync/${{ inputs.assetid }}" -H 'accept: */*' -H 'Content-Type: multipart/form-data' -F 'file=@mitigate_dev_core_sbom.json;type=application/json'
+        curl -X 'POST' "https://dev.mitigate.maggioli-research.gr/mitigate-service/api/asset/sync/${{ inputs.assetid }}" -H 'accept: */*' -H 'Content-Type: multipart/form-data' -F 'file=@my_sbom.json;type=application/json'
       shell: bash
