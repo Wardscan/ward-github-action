@@ -16,6 +16,14 @@ inputs:
     description: 'Name of docker image of the sbom'
     required: false
     default: ''
+  client_id:
+    description: 'API Key client from mitigate platform'
+    required: true
+    default: ''
+  client_secret:
+    description: 'API Key from mitigate platform'
+    required: true
+    default: ''
 
 runs:
   using: 'composite'
@@ -39,5 +47,7 @@ runs:
     
     - name: Asset sync
       run: |
-        curl -X 'POST' "https://dev.mitigate.maggioli-research.gr/mitigate-service/api/asset/sync/${{ inputs.assetid }}" -H 'accept: */*' -H 'Content-Type: multipart/form-data' -F 'file=@my_sbom.json;type=application/json'
+        req=$(curl -X POST 'https://keycloak.maggioli-research.gr/auth/realms/mitigate-dev/protocol/openid-connect/token' -H 'Content-Type: application/x-www-form-urlencoded' -d "grant_type=client_credentials&client_id=${{ inputs.client_id }}&client_secret=${{ inputs.client_secret }}")
+        token=$(echo "$req" | grep -o '"access_token":"[^"]*' | awk -F'"' '{print $4}')
+        curl -X 'POST' "https://dev.mitigate.maggioli-research.gr/mitigate-service/api/asset/sync/${{ inputs.assetid }}" -H 'accept: */*' -H "Authorization: Bearer $token" -H 'Content-Type: multipart/form-data' -F 'file=@my_sbom.json;type=application/json'
       shell: bash
