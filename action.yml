@@ -54,6 +54,8 @@ runs:
         then
           syft . -o cyclonedx-json=my_sbom.json
         fi
+        ls -la my_sbom.json
+        cat my_sbom.json
       shell: bash
     
     - name: Asset sync
