@@ -5,7 +5,7 @@ inputs:
     required: true
     default: ''
   type:
-    description: 'From where the sbom will be generated (image, repo)'
+    description: 'From where the sbom will be generated (image, repo, java)'
     required: false
     default: ''
   registry:
@@ -33,21 +33,37 @@ runs:
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
       shell: bash
 
+    - name: Build Java Jar
+      if: ${{ inputs.type == 'java' }}
+      run: |
+        # Use Maven (or change this to your build tool, e.g., Gradle)
+        gradle clean assemble
+      shell: bash
+
     - name: Generate sbom
       run: |
-        if [ "${{ inputs.type }}" = "image" ]
+        if [ "${{ inputs.type }}" = "java" ]
+        then
+          # Adjust the path to your jar file as needed.
+          syft . -o cyclonedx-json=my_sbom.json
+        elif [ "${{ inputs.type }}" = "image" ]
         then
           syft registry:${{ inputs.imagename }} -o cyclonedx-json=my_sbom.json
-          ls
         elif [ "${{ inputs.type }}" = "repo" ]
         then
           syft "." -o cyclonedx-json=my_sbom.json
-        fi 
+        fi
       shell: bash
     
     - name: Asset sync
       run: |
-        req=$(curl -X POST 'https://keycloak.maggioli-research.gr/auth/realms/mitigate-dev/protocol/openid-connect/token' -H 'Content-Type: application/x-www-form-urlencoded' -d "grant_type=client_credentials&client_id=${{ inputs.client_id }}&client_secret=${{ inputs.client_secret }}")
+        req=$(curl -X POST 'https://keycloak-prod.maggioli-research.gr/auth/realms/ward/protocol/openid-connect/token' \
+          -H 'Content-Type: application/x-www-form-urlencoded' \
+          -d "grant_type=client_credentials&client_id=${{ inputs.client_id }}&client_secret=${{ inputs.client_secret }}")
         token=$(echo "$req" | grep -o '"access_token":"[^"]*' | awk -F'"' '{print $4}')
-        curl -X 'POST' "https://dev.mitigate.maggioli-research.gr/mitigate-service/api/asset/sync/${{ inputs.assetid }}" -H 'accept: */*' -H "Authorization: Bearer $token" -H 'Content-Type: multipart/form-data' -F 'file=@my_sbom.json;type=application/json'
+        curl -X 'POST' "https://wardscan.com/ward-service/api/asset/sync/${{ inputs.assetid }}" \
+          -H 'accept: */*' \
+          -H "Authorization: Bearer $token" \
+          -H 'Content-Type: multipart/form-data' \
+          -F 'file=@my_sbom.json;type=application/json'
       shell: bash
