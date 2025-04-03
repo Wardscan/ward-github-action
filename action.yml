@@ -52,7 +52,7 @@ runs:
           syft registry:${{ inputs.imagename }} -o cyclonedx-json=my_sbom.json
         elif [ "${{ inputs.type }}" = "repo" ]
         then
-          syft "." -o cyclonedx-json=my_sbom.json
+          syft . -o cyclonedx-json=my_sbom.json
         fi
       shell: bash
     
