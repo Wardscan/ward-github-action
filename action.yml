@@ -39,6 +39,11 @@ runs:
         # Use Maven (or change this to your build tool, e.g., Gradle)
         chmod +x gradlew  # Ensure the wrapper is executable
         ./gradlew clean assemble
+        ./gradlew sonar -x compileTestJava \
+          -Dsonar.projectKey=${{ inputs.projectKey }} \
+          -Dsonar.projectName=${{ inputs.projectName }} \
+          -Dsonar.host.url=${{ inputs.sonarUrl }} \
+          -Dsonar.login=${{ inputs.sonarToken }}
       shell: bash
 
     - name: Install Node.js Dependencies
