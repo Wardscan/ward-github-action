@@ -45,6 +45,7 @@ runs:
       if: ${{ inputs.type == 'npm' }}
       run: |
         npm install
+      shell: bash
 
     - name: Generate sbom
       run: |
