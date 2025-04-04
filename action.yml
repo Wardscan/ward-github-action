@@ -1,11 +1,11 @@
-name: "mitigate github action"
+name: "Ward github action"
 inputs:
   assetid:
     description: 'The id of the asset that it will get synced'
     required: true
     default: ''
   type:
-    description: 'From where the sbom will be generated (image, repo, java)'
+    description: 'From where the sbom will be generated (image, repo, gradle, npm)'
     required: false
     default: ''
   registry:
@@ -17,11 +17,11 @@ inputs:
     required: false
     default: ''
   client_id:
-    description: 'API Key client from mitigate platform'
+    description: 'API Key client from Ward platform'
     required: true
     default: ''
   client_secret:
-    description: 'API Key from mitigate platform'
+    description: 'API Key from Ward platform'
     required: true
     default: ''
 
@@ -33,29 +33,26 @@ runs:
           curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
       shell: bash
 
-    - name: Build Java Jar
-      if: ${{ inputs.type == 'java' }}
+    - name: Build Gradle Jar
+      if: ${{ inputs.type == 'gradle' }}
       run: |
         # Use Maven (or change this to your build tool, e.g., Gradle)
         chmod +x gradlew  # Ensure the wrapper is executable
         ./gradlew clean assemble
       shell: bash
 
+    - name: Install Node.js Dependencies
+      if: ${{ inputs.type == 'npm' }}
+      run: |
+        npm install
+
     - name: Generate sbom
       run: |
-        if [ "${{ inputs.type }}" = "java" ]
-        then
-          # Adjust the path to your jar file as needed.
-          syft . -o cyclonedx-json=my_sbom.json
-        elif [ "${{ inputs.type }}" = "image" ]
-        then
-          syft registry:${{ inputs.imagename }} -o cyclonedx-json=my_sbom.json
-        elif [ "${{ inputs.type }}" = "repo" ]
-        then
-          syft . -o cyclonedx-json=my_sbom.json
+        if [ "${{ inputs.type }}" = "image" ]; then
+          syft registry:${{ inputs.imagename }} -o cyclonedx-json=sbom.json
+        else
+          syft . -o cyclonedx-json=sbom.json
         fi
-        ls -la my_sbom.json
-        cat my_sbom.json
       shell: bash
     
     - name: Asset sync
@@ -68,7 +65,7 @@ runs:
           -H 'accept: */*' \
           -H "Authorization: Bearer $token" \
           -H 'Content-Type: multipart/form-data' \
-          -F 'file=@my_sbom.json;type=application/json')
+          -F 'file=@sbom.json;type=application/json')
     
         echo "$response"
       shell: bash
