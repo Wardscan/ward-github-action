@@ -50,7 +50,7 @@ runs:
       if: ${{ inputs.type == 'npm' }}
       run: |
         npm install
-        sonar-scanner -Dsonar.projectKey=${{ inputs.projectKey }} -Dsonar.projectName=${{ inputs.projectName }} -Dsonar.host.url=${{ inputs.sonarUrl }} -Dsonar.login=${{ inputs.sonarToken }}
+        npm run sonar-scanner -Dsonar.projectKey=${{ inputs.projectKey }} -Dsonar.projectName=${{ inputs.projectName }} -Dsonar.host.url=${{ inputs.sonarUrl }} -Dsonar.login=${{ inputs.sonarToken }}
       shell: bash
 
     - name: Generate sbom
