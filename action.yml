@@ -50,6 +50,7 @@ runs:
       if: ${{ inputs.type == 'npm' }}
       run: |
         npm install
+        npm run sonar
       shell: bash
 
     - name: Generate sbom
