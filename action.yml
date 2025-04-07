@@ -46,6 +46,7 @@ runs:
           -Dsonar.login=${{ inputs.sonarToken }}
       shell: bash
 
+    - name: Build Maven Jar
       if: ${{ inputs.type == 'maven' }}
       run: |
         mvn clean install sonar:sonar \
