@@ -51,6 +51,11 @@ runs:
       run: |
         npm install
         npm run sonar
+      env:
+        SONAR_PROJECT_KEY: ${{ inputs.projectKey }}
+        SONAR_PROJECT_NAME: ${{ inputs.projectName }}
+        SONAR_HOST_URL: ${{ inputs.sonarUrl }}
+        SONAR_TOKEN: ${{ inputs.sonarToken }}
       shell: bash
 
     - name: Generate sbom
