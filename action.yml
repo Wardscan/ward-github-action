@@ -46,6 +46,15 @@ runs:
           -Dsonar.login=${{ inputs.sonarToken }}
       shell: bash
 
+      if: ${{ inputs.type == 'maven' }}
+      run: |
+        mvn clean install sonar:sonar \
+          -Dsonar.projectKey=${{ inputs.projectKey }} \
+          -Dsonar.projectName=${{ inputs.projectName }} \
+          -Dsonar.host.url=${{ inputs.sonarUrl }} \
+          -Dsonar.login=${{ inputs.sonarToken }}
+      shell: bash
+
     - name: Install Node.js Dependencies
       if: ${{ inputs.type == 'npm' }}
       run: |
