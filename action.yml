@@ -79,6 +79,10 @@ runs:
     
     - name: Asset sync
       run: |
+        # Get PR info
+        COMMIT_AUTHOR="${{ github.event.pull_request.user.login }}"
+        COMMIT_MESSAGE="${{ github.event.pull_request.title }}"
+        
         req=$(curl -X POST 'https://keycloak-prod.maggioli-research.gr/auth/realms/ward/protocol/openid-connect/token' \
           -H 'Content-Type: application/x-www-form-urlencoded' \
           -d "grant_type=client_credentials&client_id=${{ inputs.client_id }}&client_secret=${{ inputs.client_secret }}")
@@ -86,8 +90,8 @@ runs:
         response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "https://wardscan.com/ward-service/api/mitigate-scanner-service/asset/sync/${{ inputs.assetid }}" \
           -H 'accept: */*' \
           -H "Authorization: Bearer $token" \
-          -H 'Content-Type: multipart/form-data' \
-          -F 'file=@sbom.json;type=application/json')
+          -F "file=@sbom.json;type=application/json" \
+          -F "commitInfos={\"author\":\"$COMMIT_AUTHOR\",\"message\":\"$COMMIT_MESSAGE\"};type=application/json")
     
         echo "$response"
       shell: bash
