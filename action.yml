@@ -39,33 +39,18 @@ runs:
         # Use Maven (or change this to your build tool, e.g., Gradle)
         chmod +x gradlew  # Ensure the wrapper is executable
         ./gradlew clean assemble
-        ./gradlew sonar -x compileTestJava \
-          -Dsonar.projectKey=${{ inputs.projectKey }} \
-          -Dsonar.projectName=${{ inputs.projectName }} \
-          -Dsonar.host.url=${{ inputs.sonarUrl }} \
-          -Dsonar.login=${{ inputs.sonarToken }}
       shell: bash
 
     - name: Build Maven Jar
       if: ${{ inputs.type == 'maven' }}
       run: |
-        mvn clean install sonar:sonar \
-          -Dsonar.projectKey=${{ inputs.projectKey }} \
-          -Dsonar.projectName=${{ inputs.projectName }} \
-          -Dsonar.host.url=${{ inputs.sonarUrl }} \
-          -Dsonar.login=${{ inputs.sonarToken }}
+        mvn clean install
       shell: bash
 
     - name: Install Node.js Dependencies
       if: ${{ inputs.type == 'npm' }}
       run: |
         npm install
-        npm run sonar
-      env:
-        SONAR_PROJECT_KEY: ${{ inputs.projectKey }}
-        SONAR_PROJECT_NAME: ${{ inputs.projectName }}
-        SONAR_HOST_URL: ${{ inputs.sonarUrl }}
-        SONAR_TOKEN: ${{ inputs.sonarToken }}
       shell: bash
 
     - name: Generate sbom
@@ -83,11 +68,11 @@ runs:
         COMMIT_AUTHOR="${{ github.event.pull_request.user.login }}"
         COMMIT_MESSAGE="${{ github.event.pull_request.title }}"
         
-        req=$(curl -X POST 'https://keycloak-prod.maggioli-research.gr/auth/realms/ward/protocol/openid-connect/token' \
+        req=$(curl -X POST 'https://keycloak.maggioli-research.gr/auth/realms/mitigate-dev/protocol/openid-connect/token' \
           -H 'Content-Type: application/x-www-form-urlencoded' \
           -d "grant_type=client_credentials&client_id=${{ inputs.client_id }}&client_secret=${{ inputs.client_secret }}")
         token=$(echo "$req" | grep -o '"access_token":"[^"]*' | awk -F'"' '{print $4}')
-        response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "https://wardscan.com/ward-service/api/mitigate-scanner-service/asset/sync/${{ inputs.assetid }}" \
+        response=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -X POST "https://nepheli.wardscan.com/ward-service/api/mitigate-scanner-service/asset/sync/${{ inputs.assetid }}" \
           -H 'accept: */*' \
           -H "Authorization: Bearer $token" \
           -F "file=@sbom.json;type=application/json" \
