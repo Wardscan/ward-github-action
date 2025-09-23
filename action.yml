@@ -63,11 +63,7 @@ runs:
       shell: bash
     
     - name: Asset sync
-      run: |
-        # Get PR info
-        COMMIT_AUTHOR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login || github.actor }}
-        COMMIT_MESSAGE: ${{ github.event_name == 'pull_request' && github.event.pull_request.title || github.event.head_commit.message }}
-        
+      run: |    
         req=$(curl -X POST 'https://keycloak.maggioli-research.gr/auth/realms/mitigate-dev/protocol/openid-connect/token' \
           -H 'Content-Type: application/x-www-form-urlencoded' \
           -d "grant_type=client_credentials&client_id=${{ inputs.client_id }}&client_secret=${{ inputs.client_secret }}")
@@ -76,7 +72,7 @@ runs:
           -H 'accept: */*' \
           -H "Authorization: Bearer $token" \
           -F "file=@sbom.json;type=application/json" \
-          -F "commitInfos={\"author\":\"$COMMIT_AUTHOR\",\"message\":\"$COMMIT_MESSAGE\"};type=application/json")
-    
+          -F "commitInfos={\"author\":\"${{ github.event_name == 'pull_request' && github.event.pull_request.user.login || github.actor }}\",\"message\":\"${{ github.event_name == 'pull_request' && github.event.pull_request.title || github.event.head_commit.message }}\"};type=application/json"        
+        
         echo "$response"
       shell: bash
