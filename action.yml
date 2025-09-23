@@ -65,8 +65,8 @@ runs:
     - name: Asset sync
       run: |
         # Get PR info
-        COMMIT_AUTHOR="${{ github.event.pull_request.user.login }}"
-        COMMIT_MESSAGE="${{ github.event.pull_request.title }}"
+        COMMIT_AUTHOR: ${{ github.event_name == 'pull_request' && github.event.pull_request.user.login || github.actor }}
+        COMMIT_MESSAGE: ${{ github.event_name == 'pull_request' && github.event.pull_request.title || github.event.head_commit.message }}
         
         req=$(curl -X POST 'https://keycloak.maggioli-research.gr/auth/realms/mitigate-dev/protocol/openid-connect/token' \
           -H 'Content-Type: application/x-www-form-urlencoded' \
