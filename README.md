@@ -72,3 +72,11 @@ jobs:
           assetid: ${{ secrets.ASSETID}}
           type: repo
 ```
+
+## Engineering and agent documentation
+
+The [engineering index](engineering/README.md) documents the source-observed
+action contract, prerequisites, verification limits, review and delivery gates.
+[AGENTS.md](AGENTS.md) is the canonical agent policy. This supplemental baseline
+is a draft, not activation or release evidence; the existing usage examples above
+are preserved and their compatibility limitations are recorded in the index.
